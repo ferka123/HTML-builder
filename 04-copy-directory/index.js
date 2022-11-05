@@ -4,6 +4,7 @@ const path = require("path");
 async function copyDir(src, dest) {
   try {
     const destDirPath = path.resolve(__dirname, dest);
+    await fs.rm(destDirPath, { recursive: true, force: true });
     const destDir = await fs.mkdir(destDirPath, { recursive: true });
     const srcDirPath = path.resolve(__dirname, src);
     const srcDir = await fs.readdir(srcDirPath, {
