@@ -1,20 +1,22 @@
 const fs = require("fs/promises");
 const path = require("path");
 
+const src = path.resolve(__dirname, "files");
+const dest = path.resolve(__dirname, "files-copy");
+copyDir(src, dest);
+
 async function copyDir(src, dest) {
   try {
-    const destDirPath = path.resolve(__dirname, dest);
-    await fs.rm(destDirPath, { recursive: true, force: true });
-    const destDir = await fs.mkdir(destDirPath, { recursive: true });
-    const srcDirPath = path.resolve(__dirname, src);
-    const srcDir = await fs.readdir(srcDirPath, {
+    await fs.rm(dest, { recursive: true, force: true });
+    await fs.mkdir(dest, { recursive: true });
+    const srcDir = await fs.readdir(src, {
       withFileTypes: true,
     });
 
     for (const entity of srcDir)
       if (entity.isFile()) {
-        const srcFilePath = path.join(srcDirPath, entity.name);
-        const destFilePath = path.join(destDirPath, entity.name);
+        const srcFilePath = path.join(src, entity.name);
+        const destFilePath = path.join(dest, entity.name);
         await fs.copyFile(srcFilePath, destFilePath);
       } else {
         copyDir(path.join(src, entity.name), path.join(dest, entity.name));
@@ -24,4 +26,4 @@ async function copyDir(src, dest) {
   }
 }
 
-copyDir("files", "files-copy");
+module.exports = copyDir;

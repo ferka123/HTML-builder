@@ -1,20 +1,20 @@
 const fs = require("fs");
 const path = require("path");
 
-mergeStyles("styles", path.join("project-dist", "bundle.css"));
+const src = path.resolve(__dirname, "styles");
+const dest = path.resolve(__dirname, path.join("project-dist", "bundle.css"));
+mergeStyles(src, dest);
 
 async function mergeStyles(src, dest) {
-  const inputPath = path.resolve(__dirname, src);
-  const outputPath = path.resolve(__dirname, dest);
   try {
-    const bundle = fs.createWriteStream(outputPath);
-    const styles = await fs.promises.readdir(inputPath, {
+    const bundle = fs.createWriteStream(dest);
+    const styles = await fs.promises.readdir(src, {
       withFileTypes: true,
     });
 
     for (const entity of styles) {
       if (entity.isFile()) {
-        const filePath = path.join(inputPath, entity.name);
+        const filePath = path.join(src, entity.name);
         const file = path.parse(filePath);
         if (file.ext === ".css") {
           await new Promise((resolve, reject) => {
@@ -25,9 +25,9 @@ async function mergeStyles(src, dest) {
         }
       }
     }
-
-    console.log("Successfully bundled");
   } catch (err) {
     console.error(err);
   }
 }
+
+module.exports = mergeStyles;
