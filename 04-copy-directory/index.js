@@ -25,5 +25,3 @@ async function copyDir(src, dest) {
     console.error(err);
   }
 }
-
-module.exports = copyDir;

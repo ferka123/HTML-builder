@@ -20,7 +20,7 @@ async function mergeStyles(src, dest) {
           await new Promise((resolve, reject) => {
             const stream = fs.createReadStream(filePath);
             stream.pipe(bundle, { end: false });
-            stream.on("end", resolve);
+            stream.on("end", () => bundle.write("\n", resolve));
           });
         }
       }
@@ -29,5 +29,3 @@ async function mergeStyles(src, dest) {
     console.error(err);
   }
 }
-
-module.exports = mergeStyles;

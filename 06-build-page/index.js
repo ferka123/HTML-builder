@@ -2,9 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const { Transform } = require("stream");
 
-const copyDir = require("../04-copy-directory");
-const mergeStyles = require("../05-merge-styles");
-
 const projectDir = path.join(__dirname, "project-dist");
 const assets = path.join(__dirname, "assets");
 const styles = path.join(__dirname, "styles");
@@ -36,12 +33,14 @@ const componentsDir = path.join(__dirname, "components");
               const chunks = [];
               stream.on("data", (data) => chunks.push(data));
               stream.on("end", () => {
-                chunk = chunk.toString().replace(`{{${componentName}}}`, chunks.join(""));
+                chunk = chunk
+                  .toString()
+                  .replace(`{{${componentName}}}`, chunks.join(""));
                 resolve();
               });
             });
           });
-        await Promise.all(replacements)
+        await Promise.all(replacements);
         callback(null, chunk);
       },
     });
@@ -51,3 +50,49 @@ const componentsDir = path.join(__dirname, "components");
     console.error(err);
   }
 })();
+
+async function mergeStyles(src, dest) {
+  try {
+    const bundle = fs.createWriteStream(dest);
+    const styles = await fs.promises.readdir(src, {
+      withFileTypes: true,
+    });
+
+    for (const entity of styles) {
+      if (entity.isFile()) {
+        const filePath = path.join(src, entity.name);
+        const file = path.parse(filePath);
+        if (file.ext === ".css") {
+          await new Promise((resolve, reject) => {
+            const stream = fs.createReadStream(filePath);
+            stream.pipe(bundle, { end: false });
+            stream.on("end", () => bundle.write("\n", resolve));
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function copyDir(src, dest) {
+  try {
+    await fs.promises.rm(dest, { recursive: true, force: true });
+    await fs.promises.mkdir(dest, { recursive: true });
+    const srcDir = await fs.promises.readdir(src, {
+      withFileTypes: true,
+    });
+
+    for (const entity of srcDir)
+      if (entity.isFile()) {
+        const srcFilePath = path.join(src, entity.name);
+        const destFilePath = path.join(dest, entity.name);
+        await fs.promises.copyFile(srcFilePath, destFilePath);
+      } else {
+        copyDir(path.join(src, entity.name), path.join(dest, entity.name));
+      }
+  } catch (err) {
+    console.error(err);
+  }
+}
