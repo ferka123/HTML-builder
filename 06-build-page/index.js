@@ -90,7 +90,7 @@ async function copyDir(src, dest) {
         const destFilePath = path.join(dest, entity.name);
         await fs.promises.copyFile(srcFilePath, destFilePath);
       } else {
-        copyDir(path.join(src, entity.name), path.join(dest, entity.name));
+        await copyDir(path.join(src, entity.name), path.join(dest, entity.name));
       }
   } catch (err) {
     console.error(err);
